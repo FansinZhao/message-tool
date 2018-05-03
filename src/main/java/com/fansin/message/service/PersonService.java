@@ -13,4 +13,7 @@ import com.baomidou.mybatisplus.service.IService;
  */
 public interface PersonService extends IService<Person> {
 
+
+    void batchUpdate();
+
 }
