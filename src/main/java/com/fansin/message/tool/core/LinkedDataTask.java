@@ -1,6 +1,5 @@
 package com.fansin.message.tool.core;
 
-import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -16,7 +15,7 @@ import java.util.concurrent.RecursiveTask;
  * @since 1.0.0
  */
 @Slf4j
-public class LinkedDataTask extends RecursiveTask<Long> {
+public class LinkedDataTask extends RecursiveTask<Integer> {
 
     private static final int THRESHOLD_PROCESS_SIZE = 100000;
     private static final int THRESHOLD_SUB_TASK = 100;
@@ -27,18 +26,18 @@ public class LinkedDataTask extends RecursiveTask<Long> {
      */
     private LinkedDataReceiver receiver;
 
-    private List<String> linkedDataList;
+    private List<String> dataList;
 
     /**
      * Instantiates a new Linked data task.
      *
      * @param name           the name
-     * @param linkedDataList the linked data list
+     * @param dataList the linked data list
      * @param receiver       the receiver
      */
-    public LinkedDataTask(String name ,List<String> linkedDataList, LinkedDataReceiver receiver) {
+    public LinkedDataTask(String name , List<String> dataList, LinkedDataReceiver receiver) {
         this.name = name;
-        this.linkedDataList = linkedDataList;
+        this.dataList = dataList;
         this.receiver = receiver;
     }
 
@@ -48,27 +47,23 @@ public class LinkedDataTask extends RecursiveTask<Long> {
      * @return the result of the computation
      */
     @Override
-    protected Long compute() {
+    protected Integer compute() {
 
-        long successNum = 0;
-        boolean canCompute = linkedDataList.size() < THRESHOLD_PROCESS_SIZE;
+        int successNum = 0;
+        boolean canCompute = dataList.size() < THRESHOLD_PROCESS_SIZE;
         if (canCompute) {
             try {
                 long start = System.currentTimeMillis();
-                List<AbstractLinkedData> linkedData = receiver.preProcess(linkedDataList);
-                if (CollectionUtil.isEmpty(linkedData)) {
-                    log.warn("任务处理队列为空!{}",name);
-                    return 0L;
-                }
-                successNum += receiver.exec(linkedData);
-                long end = System.currentTimeMillis();
-                log.info("任务名称 {} 消耗时间：{}", name, end - start);
+                //数据处理
+                successNum += receiver.exec(dataList);
+                long time = System.currentTimeMillis() -start;
+                log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(),time);
             } catch (Exception e) {
-                log.error("任务处理异常",e);
-                return 0L;
+                log.error("任务处理异常 taskName="+name,e);
+                return 0;
             }
         } else {
-            int length = linkedDataList.size();
+            int length = dataList.size();
             int step = length / THRESHOLD_SUB_TASK;
             ArrayList<LinkedDataTask> subTaskList = new ArrayList<>();
             int pos = 0;
@@ -78,7 +73,8 @@ public class LinkedDataTask extends RecursiveTask<Long> {
                 if (lastOne > length) {
                     lastOne = length;
                 }
-                LinkedDataTask subTask = new LinkedDataTask(" SubTask"+i,linkedDataList.subList(pos, lastOne), receiver);
+                //工厂方法
+                LinkedDataTask subTask = new LinkedDataTask(" SubTask"+i, dataList.subList(pos, lastOne), receiver);
                 pos += step;
                 subTaskList.add(subTask);
                 subTask.fork();
@@ -115,7 +111,7 @@ public class LinkedDataTask extends RecursiveTask<Long> {
      *
      * @return the linked data list
      */
-    public List<String> getLinkedDataList() {
-        return linkedDataList;
+    public List<String> getDataList() {
+        return dataList;
     }
 }

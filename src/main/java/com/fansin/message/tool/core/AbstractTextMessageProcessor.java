@@ -62,9 +62,9 @@ public abstract class AbstractTextMessageProcessor extends AbstractMessageProces
             }
             ForkJoinPool pool = new ForkJoinPool();
             LinkedDataTask task = new LinkedDataTask("RootTask",batchList, receiver);
-            ForkJoinTask<Long> forkJoinTask = pool.submit(task);
+            ForkJoinTask<Integer> forkJoinTask = pool.submit(task);
             long start = System.currentTimeMillis();
-            Long successNum = forkJoinTask.get();
+            Integer successNum = forkJoinTask.get();
             long time = System.currentTimeMillis() - start;
             log.info("更新成功记录数{} 总条数 {} 消耗总时间 {}", successNum,count.get(),time);
         } catch (IOException e) {

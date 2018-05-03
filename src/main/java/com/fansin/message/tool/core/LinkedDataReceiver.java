@@ -24,19 +24,11 @@ public interface LinkedDataReceiver<V> {
     int  PAGE_SIZE = 30;
 
     /**
-     * 将String 解析为 List
-     *
-     * @param stringList the string list
-     * @return list
-     */
-    List<V> preProcess(List<String> stringList);
-
-    /**
      * 处理数据
      *
      * @param dataList the data list
      * @return long
      */
-    Long exec(List<V> dataList);
+    Integer exec(List<V> dataList);
 
 }
