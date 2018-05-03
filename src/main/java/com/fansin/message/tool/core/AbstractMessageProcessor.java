@@ -18,9 +18,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractMessageProcessor {
 
-    private static final String MODE_READ    = "r";
-    private static final String MODE_WRITE   = "rw";
-    private static final int    WAITING_DAYS = 1;
+    private static final String MODE_READ = "r";
+    private static final String MODE_WRITE = "rw";
+    private static final int WAITING_DAYS = 1;
 
     /**
      * The Receiver.

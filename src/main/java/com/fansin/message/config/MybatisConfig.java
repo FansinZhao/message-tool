@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author zhaofeng
  * @version 1.0
- * @date 18-5-2
+ * @date 18 -5-2
  */
 @MapperScan("com.**.mapper")
 @Configuration

@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author zhaofeng
  * @version 1.0
- * @date 18-5-2
+ * @date 18 -5-2
  */
 @Slf4j
 public class LocalDateReceiver implements LinkedDataReceiver<String> {

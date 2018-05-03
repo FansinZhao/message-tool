@@ -11,19 +11,29 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author zhaofeng
  * @version 1.0
- * @date 18-5-2
+ * @date 18 -5-2
  */
 @RestController
 @RequestMapping("/text")
 public class SimpleTextMessageProcessorController {
 
+    /**
+     * Index string.
+     *
+     * @return the string
+     */
     @RequestMapping()
-    public String index(){
+    public String index() {
         return "ok";
     }
 
+    /**
+     * Process string.
+     *
+     * @return the string
+     */
     @RequestMapping("/process")
-    public String process(){
+    public String process() {
         new SimpleTextMessageProcessor(new LocalDateReceiver()).read("/home/zhaofeng/IdeaProjects/message-tool/src/main/resources/testData.txt");
         return "解析报文!";
     }

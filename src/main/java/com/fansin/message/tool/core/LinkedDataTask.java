@@ -31,11 +31,11 @@ public class LinkedDataTask extends RecursiveTask<Integer> {
     /**
      * Instantiates a new Linked data task.
      *
-     * @param name           the name
+     * @param name     the name
      * @param dataList the linked data list
-     * @param receiver       the receiver
+     * @param receiver the receiver
      */
-    public LinkedDataTask(String name , List<String> dataList, LinkedDataReceiver receiver) {
+    public LinkedDataTask(String name, List<String> dataList, LinkedDataReceiver receiver) {
         this.name = name;
         this.dataList = dataList;
         this.receiver = receiver;
@@ -56,10 +56,10 @@ public class LinkedDataTask extends RecursiveTask<Integer> {
                 long start = System.currentTimeMillis();
                 //数据处理
                 successNum += receiver.exec(dataList);
-                long time = System.currentTimeMillis() -start;
-                log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(),time);
+                long time = System.currentTimeMillis() - start;
+                log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(), time);
             } catch (Exception e) {
-                log.error("任务处理异常 taskName="+name,e);
+                log.error("任务处理异常 taskName=" + name, e);
                 return 0;
             }
         } else {
@@ -74,12 +74,12 @@ public class LinkedDataTask extends RecursiveTask<Integer> {
                     lastOne = length;
                 }
                 //工厂方法
-                LinkedDataTask subTask = new LinkedDataTask(" SubTask"+i, dataList.subList(pos, lastOne), receiver);
+                LinkedDataTask subTask = new LinkedDataTask(" SubTask" + i, dataList.subList(pos, lastOne), receiver);
                 pos += step;
                 subTaskList.add(subTask);
                 subTask.fork();
             }
-            log.info("拆分任务数 {}",subTaskList.size());
+            log.info("拆分任务数 {}", subTaskList.size());
             for (LinkedDataTask task : subTaskList) {
                 successNum += task.join();
             }

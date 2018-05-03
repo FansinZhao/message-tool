@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @date 18 -5-2
  */
 @Slf4j
-public abstract class AbstractTextMessageProcessor extends AbstractMessageProcessor{
+public abstract class AbstractTextMessageProcessor extends AbstractMessageProcessor {
 
     /**
      * The Count.
@@ -61,12 +61,12 @@ public abstract class AbstractTextMessageProcessor extends AbstractMessageProces
                 count.incrementAndGet();
             }
             ForkJoinPool pool = new ForkJoinPool();
-            LinkedDataTask task = new LinkedDataTask("RootTask",batchList, receiver);
+            LinkedDataTask task = new LinkedDataTask("RootTask", batchList, receiver);
             ForkJoinTask<Integer> forkJoinTask = pool.submit(task);
             long start = System.currentTimeMillis();
             Integer successNum = forkJoinTask.get();
             long time = System.currentTimeMillis() - start;
-            log.info("更新成功记录数{} 总条数 {} 消耗总时间 {}", successNum,count.get(),time);
+            log.info("更新成功记录数{} 总条数 {} 消耗总时间 {}", successNum, count.get(), time);
         } catch (IOException e) {
             log.error(" 报文解析错误！", e);
         } catch (InterruptedException e) {

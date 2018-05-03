@@ -24,7 +24,7 @@ import java.util.concurrent.RecursiveTask;
  * </p>
  *
  * @author zhaofeng
- * @since 2018-05-02
+ * @since 2018 -05-02
  */
 @RestController
 @RequestMapping("/person")
@@ -34,16 +34,27 @@ public class PersonController {
     @Resource
     private PersonService personService;
 
+    /**
+     * Find string.
+     *
+     * @return the string
+     */
     @RequestMapping
-    public String find(){
+    public String find() {
         return "OK";
     }
 
 
+    /**
+     * Insert batch string.
+     *
+     * @param total the total
+     * @return the string
+     */
     @RequestMapping("/insertBatch/{total}")
-    public String insertBatch(@PathVariable("total") int total){
+    public String insertBatch(@PathVariable("total") int total) {
 
-        if(total == 0){
+        if (total == 0) {
             total = 1000000;
         }
 
@@ -51,12 +62,12 @@ public class PersonController {
 
 
         ForkJoinPool pool = new ForkJoinPool();
-        BatchTask task = new BatchTask("BatchTask",list,personService);
+        BatchTask task = new BatchTask("BatchTask", list, personService);
         pool.submit(task);
         int sum = 0;
         try {
             sum = task.get();
-            log.info("批量插入数量:{}",sum);
+            log.info("批量插入数量:{}", sum);
         } catch (InterruptedException e) {
             e.printStackTrace();
             sum = -1;
@@ -64,10 +75,10 @@ public class PersonController {
             e.printStackTrace();
             sum = -1;
         }
-        return "批量插入数量:"+sum;
+        return "批量插入数量:" + sum;
     }
 
-    private List builder(int size){
+    private List builder(int size) {
 
         List list = new ArrayList();
 
@@ -87,7 +98,10 @@ public class PersonController {
         return list;
     }
 
-    public class BatchTask extends RecursiveTask<Integer>{
+    /**
+     * The type Batch task.
+     */
+    public class BatchTask extends RecursiveTask<Integer> {
 
         private static final int THRESHOLD_PROCESS_SIZE = 100000;
         private static final int THRESHOLD_SUB_TASK = 100;
@@ -97,7 +111,14 @@ public class PersonController {
         private List dataList;
         private String name;
 
-        public BatchTask(String name, List dataList,IService service) {
+        /**
+         * Instantiates a new Batch task.
+         *
+         * @param name     the name
+         * @param dataList the data list
+         * @param service  the service
+         */
+        public BatchTask(String name, List dataList, IService service) {
             this.service = service;
             this.dataList = dataList;
             this.name = name;
@@ -117,13 +138,13 @@ public class PersonController {
                 try {
                     long start = System.currentTimeMillis();
                     //数据处理
-                    if(service.insertBatch(dataList)){
+                    if (service.insertBatch(dataList)) {
                         successNum += dataList.size();
                     }
-                    long time = System.currentTimeMillis() -start;
-                    log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(),time);
+                    long time = System.currentTimeMillis() - start;
+                    log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(), time);
                 } catch (Exception e) {
-                    log.error("任务处理异常 taskName="+name,e);
+                    log.error("任务处理异常 taskName=" + name, e);
                     return 0;
                 }
             } else {
@@ -138,12 +159,12 @@ public class PersonController {
                         lastOne = length;
                     }
                     //工厂方法
-                    BatchTask subTask = new BatchTask(" SubTask"+i,dataList.subList(pos, lastOne), service);
+                    BatchTask subTask = new BatchTask(" SubTask" + i, dataList.subList(pos, lastOne), service);
                     pos += step;
                     subTaskList.add(subTask);
                     subTask.fork();
                 }
-                log.info("拆分任务数 {}",subTaskList.size());
+                log.info("拆分任务数 {}", subTaskList.size());
                 for (BatchTask task : subTaskList) {
                     successNum += task.join();
                 }

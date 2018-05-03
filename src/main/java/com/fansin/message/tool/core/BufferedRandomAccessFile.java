@@ -92,39 +92,41 @@ import java.util.Arrays;
  * @date 2018 -05-02
  */
 public final class BufferedRandomAccessFile extends RandomAccessFile {
-    /** 64K buffer */
-    private static final        int LOG_BUFF_SZ = 16;
+    /**
+     * 64K buffer
+     */
+    private static final int LOG_BUFF_SZ = 16;
     private static final int BUFF_SZ = (1 << LOG_BUFF_SZ);
-    private static final        long BUFF_MASK = ~(((long) BUFF_SZ) - 1L);
+    private static final long BUFF_MASK = ~(((long) BUFF_SZ) - 1L);
     private String path_;
 
     /**
      * This implementation is based on the buffer implementation in Modula-3's
      * "Rd", "Wr", "RdClass", and "WrClass" interfaces.
-     *
+     * <p>
      * true iff un-flushed bytes exist
      */
     private boolean dirty_;
     /**
-     *  dirty_ can be cleared by e.g. seek, so track sync separately
+     * dirty_ can be cleared by e.g. seek, so track sync separately
      */
     private boolean syncNeeded_;
     /**
      * current position in file
      */
-    private long    curr_;
+    private long curr_;
     /**
      * bounds on characters in "buff"
      */
-    private long    lo_, hi_;
+    private long lo_, hi_;
     /**
      * local buffer
      */
-    private byte[]  buff_;
+    private byte[] buff_;
     /**
      * this.lo + this.buff.length
      */
-    private long    maxHi_;
+    private long maxHi_;
     /**
      * buffer contains last file block?
      */
@@ -132,7 +134,7 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
     /**
      * disk position
      */
-    private long    diskPos_;
+    private long diskPos_;
 
     /**
      * Open a new <code>BufferedRandomAccessFile</code> on <code>file</code>
@@ -236,10 +238,12 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
         this.flushBuffer();
     }
 
-    /** Flush any dirty bytes in the buffer to disk. */
+    /**
+     * Flush any dirty bytes in the buffer to disk.
+     */
     private void flushBuffer() throws IOException {
         if (this.dirty_) {
-            if (this.diskPos_ != this.lo_){
+            if (this.diskPos_ != this.lo_) {
                 super.seek(this.lo_);
             }
             int len = (int) (this.curr_ - this.lo_);
@@ -259,7 +263,7 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
         int rem = this.buff_.length;
         while (rem > 0) {
             int n = super.read(this.buff_, cnt, rem);
-            if (n < 0){
+            if (n < 0) {
                 break;
             }
             cnt += n;
@@ -277,7 +281,7 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
      * This method positions <code>this.curr</code> at position <code>pos</code>.
      * If <code>pos</code> does not fall in the current buffer, it flushes the
      * current buffer and loads the correct one.<p>
-     *
+     * <p>
      * On exit from this routine <code>this.curr == this.hi</code> iff <code>pos</code>
      * is at or past the end-of-file, which can only happen if the file was
      * opened in read-only mode.
@@ -323,7 +327,9 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
 
     @Override
     public int read() throws IOException {
-        if (readEnd()) {return -1;}
+        if (readEnd()) {
+            return -1;
+        }
         byte res = this.buff_[(int) (this.curr_ - this.lo_)];
         this.curr_++;
         return ((int) res) & 0xFF; // convert byte -> int
@@ -336,7 +342,9 @@ public final class BufferedRandomAccessFile extends RandomAccessFile {
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
-        if (readEnd()){ return -1;}
+        if (readEnd()) {
+            return -1;
+        }
         len = Math.min(len, (int) (this.hi_ - this.curr_));
         int buffOff = (int) (this.curr_ - this.lo_);
         System.arraycopy(this.buff_, buffOff, b, off, len);

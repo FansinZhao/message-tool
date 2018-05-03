@@ -1,7 +1,7 @@
 package com.fansin.message.service;
 
-import com.fansin.message.entity.Person;
 import com.baomidou.mybatisplus.service.IService;
+import com.fansin.message.entity.Person;
 
 /**
  * <p>
@@ -9,11 +9,8 @@ import com.baomidou.mybatisplus.service.IService;
  * </p>
  *
  * @author zhaofeng
- * @since 2018-05-02
+ * @since 2018 -05-02
  */
 public interface PersonService extends IService<Person> {
-
-
-    void batchUpdate();
 
 }

@@ -21,13 +21,13 @@ public interface LinkedDataReceiver<V> {
     /**
      * The constant SEPERATOR.
      */
-    int  PAGE_SIZE = 30;
+    int PAGE_SIZE = 30;
 
     /**
      * 处理数据
      *
      * @param dataList the data list
-     * @return long
+     * @return long integer
      */
     Integer exec(List<V> dataList);
 
