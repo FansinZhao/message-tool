@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +45,29 @@ public class PersonController {
         return "OK";
     }
 
+
+    @RequestMapping("/export")
+    public String exportData(){
+
+        List<String> list = personService.exportData();
+
+        File file = new File("testData.txt");
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file))) {
+            for (int i = 0; i < list.size(); i++) {
+                if(i> 0 && i % 1024 == 0){
+                    outputStream.flush();
+                }
+                outputStream.write(list.get(i).concat("\n").getBytes());
+            }
+            outputStream.flush();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return file.getAbsolutePath();
+    }
 
     /**
      * Insert batch string.
