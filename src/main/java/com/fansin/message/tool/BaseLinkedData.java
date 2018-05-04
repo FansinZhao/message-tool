@@ -21,4 +21,8 @@ public class BaseLinkedData extends AbstractLinkedData {
     public BaseLinkedData(String inwardKey, String foreignKey) {
         super(inwardKey, foreignKey);
     }
+
+    public String getRaw(){
+        return this.getForeignKey()+','+this.getInwardKey();
+    }
 }

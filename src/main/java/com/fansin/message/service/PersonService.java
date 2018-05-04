@@ -1,7 +1,10 @@
 package com.fansin.message.service;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.baomidou.mybatisplus.service.IService;
 import com.fansin.message.entity.Person;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,15 @@ import com.fansin.message.entity.Person;
  */
 public interface PersonService extends IService<Person> {
 
+    /**
+     * 导出数据
+     * @return
+     */
+    List  exportData();
+
+    /**
+     * 批量更新
+     * @return
+     */
+    boolean batchUpdate(List<Person> entityList, List<EntityWrapper> entityWrapperList, int batchSize);
 }

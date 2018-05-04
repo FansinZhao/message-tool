@@ -5,4 +5,9 @@
     <!-- 开启二级缓存 -->
     <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
 
+
+    <select id="exportData" resultType="java.lang.String">
+      select CONCAT_WS(',',round(rand()*990000+10000) ,id) from Person
+    </select>
+
 </mapper>
