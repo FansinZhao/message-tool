@@ -66,7 +66,7 @@ public class PersonController {
             e.printStackTrace();
         }
 
-        return file.getAbsolutePath();
+        return "保存文件地址:\n"+file.getAbsolutePath();
     }
 
     /**
@@ -79,11 +79,12 @@ public class PersonController {
     public String insertBatch(@PathVariable("total") int total) {
 
         if (total == 0) {
-            total = 1000000;
+            total = 10000;
         }
 
         List<Person> list = builder(total);
 
+        long start = System.currentTimeMillis();
 
         ForkJoinPool pool = new ForkJoinPool();
         BatchTask task = new BatchTask("BatchTask", list, personService);
@@ -99,7 +100,7 @@ public class PersonController {
             e.printStackTrace();
             sum = -1;
         }
-        return "批量插入数量:" + sum;
+        return "批量插入数量:" + sum +" 耗时："+(System.currentTimeMillis() - start);
     }
 
     private List builder(int size) {
@@ -116,7 +117,6 @@ public class PersonController {
             person.setHome("234");
             person.setCreateDatetime(new Date());
             person.setOffice("22222");
-            person.setRemark("批量插入数据");
             list.add(person);
         }
         return list;

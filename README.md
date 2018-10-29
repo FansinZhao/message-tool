@@ -18,6 +18,27 @@
 然后启动springboot应用
 
 启动成功,访问
-![http://localhost:8080/person] (http://localhost:8080/person)
 
-###
+    http://localhost:8080/person
+
+模拟场景： 用户向第三方注册信息，返回token
+#### 1初始化数据，例如1w条数据
+
+    http://localhost:8080/insertBatch/10000
+    
+#### 2导出离线数据 
+    
+    http://localhost:8080/export
+
+#### 3本地高速读取
+
+    http://localhost:8080/local?filePath=testData.txt
+
+#### 4数据库高速操作
+
+    http://localhost:8080/db?filePath=testData.txt
+
+
+查看日志，可以看到执行过程！
+
+### 

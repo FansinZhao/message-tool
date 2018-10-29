@@ -29,6 +29,6 @@ public interface LinkedDataReceiver<V> {
      * @param dataList the data list
      * @return long integer
      */
-    Integer exec(List<V> dataList);
+    void exec(List<V> dataList);
 
 }

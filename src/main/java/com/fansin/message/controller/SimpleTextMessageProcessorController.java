@@ -1,19 +1,23 @@
 package com.fansin.message.controller;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.fansin.message.entity.Person;
 import com.fansin.message.service.PersonService;
 import com.fansin.message.tool.LocalDateReceiver;
 import com.fansin.message.tool.SimpleTextMessageProcessor;
 import com.fansin.message.tool.core.LinkedDataReceiver;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * <p>Title: SimpleTextMessageProcessorController</p>
@@ -23,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 1.0
  * @date 18 -5-2
  */
+@Slf4j
 @RestController
 @RequestMapping("/text")
 public class SimpleTextMessageProcessorController {
@@ -46,8 +51,9 @@ public class SimpleTextMessageProcessorController {
      */
     @RequestMapping("/local")
     public String processLocal(@RequestParam("filePath") String filePath) {
+        long start = System.currentTimeMillis();
         new SimpleTextMessageProcessor(new LocalDateReceiver()).read(filePath);
-        return "本地解析报文完毕!";
+        return "本地解析报文完毕! 耗时:"+(System.currentTimeMillis() - start);
     }
 
 
@@ -56,39 +62,59 @@ public class SimpleTextMessageProcessorController {
 
     @RequestMapping("/db")
     public String processDb(@RequestParam("filePath") String filePath){
+        long start = System.currentTimeMillis();
+        int batchSize = 5;
 
         new SimpleTextMessageProcessor(new LinkedDataReceiver<String>() {
+
             @Override
-            public Integer exec(List<String> dataList) {
-                //保存处理结果
-                AtomicInteger successNum = new AtomicInteger(0);
-                List<Person> entryList = new ArrayList<>();
-                List<EntityWrapper> wrapperList = new ArrayList<>();
-                for (int i = 0; i < dataList.size(); i++) {
+            public void exec(List<String> dataList) {
 
-                    //批处理
-                    if(i % 1000 == 0 &&  i > 0){
-                        personService.batchUpdate(entryList,wrapperList,1000);
-                        entryList = new ArrayList<>();
-                        wrapperList = new ArrayList<>();
-                    }
-                    String[] strings = dataList.get(i).split(SEPERATOR);
-                    Person person = new Person();
-                    person.setRemark(strings[1]);
-                    entryList.add(person);
-                    EntityWrapper<Person> entityWrapper = new EntityWrapper<>();
-                    entityWrapper.setEntity(new Person());
-                    entityWrapper.where("id={0}",strings[0]);
-                    wrapperList.add(entityWrapper);
+                if (CollUtil.isEmpty(dataList)) {
+                    log.warn("读取报文数据为空!请检查文件是否存在或文件路径是否正确! filePath={} limitSize={}", filePath, batchSize);
+                    return;
                 }
+                //保存处理结果
+                List<Person> entryList = new LinkedList<>();
+                List<EntityWrapper> wrapperList = new ArrayList<>();
+                try {
+                    for (int i = 0; i < dataList.size(); i++) {
 
-                System.out.println("[重写]业务处理,数据库持久化等...批量提交剩余数据!");
+                        //批处理
+                        String[] strings = dataList.get(i).split(SEPERATOR);
+                        if (strings.length != 2 || StrUtil.isBlank(strings[0]) || StrUtil.isBlank(strings[1])) {
+                            log.error("读取到损坏数据! {} line = {} filPath={}", Thread.currentThread().getName(),
+                                    dataList.get(i), filePath);
+                            continue;
+                        }
 
-                return successNum.get();
+                        if (i % batchSize == 0 && i > 0) {
+                            //批量更新
+                            personService.batchUpdate(entryList,wrapperList,batchSize);
+                            wrapperList = new ArrayList<>();
+                            entryList = new LinkedList<>();
+                        }
+
+                        Person person = new Person();
+                        person.setToken(strings[1]);
+                        entryList.add(person);
+                        EntityWrapper<Person> entityWrapper = new EntityWrapper<>();
+                        entityWrapper.setEntity(new Person());
+                        entityWrapper.where("id={0}",strings[0]);
+                        wrapperList.add(entityWrapper);
+                    }
+                    //更新剩余
+                    personService.batchUpdate(entryList,wrapperList,batchSize);
+                    log.info("更新数据成功,本次更新数据大小:" + dataList.size());
+                } catch (Exception e) {
+                    log.error("更新数据失败!filePath=" + filePath + " limitSize=" + batchSize, e);
+                }
             }
+
+
         }).read(filePath);
 
-        return "数据库持久化,解析报文完毕!";
+        return "数据库持久化,解析报文完毕!耗时:"+(System.currentTimeMillis() - start);
 
     }
 

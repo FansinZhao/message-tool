@@ -1,10 +1,10 @@
 package com.fansin.message.tool.core;
 
+import cn.hutool.core.collection.CollUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.RecursiveTask;
+import java.util.concurrent.RecursiveAction;
 
 /**
  * 〈一句话功能简述〉<br>
@@ -15,11 +15,11 @@ import java.util.concurrent.RecursiveTask;
  * @since 1.0.0
  */
 @Slf4j
-public class LinkedDataTask extends RecursiveTask<Integer> {
+public class LinkedDataTask extends RecursiveAction {
 
-    private static final int THRESHOLD_PROCESS_SIZE = 100000;
-    private static final int THRESHOLD_SUB_TASK = 100;
-    private String name;
+    private static final int    THRESHOLD_PROCESS_SIZE = 100000;
+
+    private              String name;
 
     /**
      * 数据处理类
@@ -47,46 +47,45 @@ public class LinkedDataTask extends RecursiveTask<Integer> {
      * @return the result of the computation
      */
     @Override
-    protected Integer compute() {
+    protected void compute() {
 
-        int successNum = 0;
-        boolean canCompute = dataList.size() < THRESHOLD_PROCESS_SIZE;
+        if (CollUtil.isEmpty(dataList)) {
+            log.error("数据为空!请联系管理员!");
+            return;
+        }
+
+        int length = dataList.size();
+        boolean canCompute = length <= THRESHOLD_PROCESS_SIZE;
         if (canCompute) {
             try {
                 long start = System.currentTimeMillis();
                 //数据处理
-                successNum += receiver.exec(dataList);
+                receiver.exec(dataList);
                 long time = System.currentTimeMillis() - start;
-                log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(), time);
+                log.info("任务名称 {} 处理数据大小 {} 消耗时间：{} ", name, dataList.size(),time);
             } catch (Exception e) {
                 log.error("任务处理异常 taskName=" + name, e);
-                return 0;
+                return;
             }
         } else {
-            int length = dataList.size();
-            int step = length / THRESHOLD_SUB_TASK;
-            ArrayList<LinkedDataTask> subTaskList = new ArrayList<>();
+
+            int step = (int)Math.ceil((double)length / THRESHOLD_PROCESS_SIZE);
             int pos = 0;
             //拆分任务数 100
-            for (int i = 0; i < THRESHOLD_SUB_TASK; i++) {
-                int lastOne = pos + step;
+            for (int i = 0; i < step; i++) {
+                int lastOne = pos + THRESHOLD_PROCESS_SIZE;
                 if (lastOne > length) {
                     lastOne = length;
                 }
+                log.info(" SubTask" + i+" pos = " + pos+" lastOne = " + lastOne);
                 //工厂方法
                 LinkedDataTask subTask = new LinkedDataTask(" SubTask" + i, dataList.subList(pos, lastOne), receiver);
-                pos += step;
-                subTaskList.add(subTask);
+                pos += THRESHOLD_PROCESS_SIZE;
                 subTask.fork();
-            }
-            log.info("拆分任务数 {}", subTaskList.size());
-            for (LinkedDataTask task : subTaskList) {
-                successNum += task.join();
+
             }
         }
-        return successNum;
     }
-
 
     /**
      * Gets name.

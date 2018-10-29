@@ -6,9 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -21,6 +20,11 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public abstract class AbstractTextMessageProcessor extends AbstractMessageProcessor {
+    protected static final int MAX_CAP      = 0x7fff;
+    /**
+     * 限制最大cup使用数目为系统一半
+     * */
+    protected int parallelism = Math.min(MAX_CAP, Runtime.getRuntime().availableProcessors())/2;
 
     /**
      * The Count.
@@ -49,30 +53,24 @@ public abstract class AbstractTextMessageProcessor extends AbstractMessageProces
             List<String> batchList = new LinkedList<>();
             while ((line = file.readLine()) != null) {
                 //数据校验
-                if (StrUtil.isEmpty(line) || line.startsWith("#") || line.startsWith("/")) {
+                if (StrUtil.isBlank(line) || line.startsWith("#") || line.startsWith("/")) {
                     continue;
                 }
                 //数据格式化
                 line = StrUtil.trim(line);
-                if (log.isDebugEnabled()) {
-                    log.debug("line = " + line);
-                }
                 batchList.add(line);
                 count.incrementAndGet();
             }
-            ForkJoinPool pool = new ForkJoinPool();
+            ForkJoinPool pool = new ForkJoinPool(parallelism);
             LinkedDataTask task = new LinkedDataTask("RootTask", batchList, receiver);
-            ForkJoinTask<Integer> forkJoinTask = pool.submit(task);
-            long start = System.currentTimeMillis();
-            Integer successNum = forkJoinTask.get();
-            long time = System.currentTimeMillis() - start;
-            log.info("更新成功记录数{} 总条数 {} 消耗总时间 {}", successNum, count.get(), time);
+            pool.execute(task);
+            //先调用关闭
+            pool.shutdown();
+            pool.awaitTermination(1, TimeUnit.DAYS);
         } catch (IOException e) {
             log.error(" 报文解析错误！", e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            log.error(" 终止异常！", e);
         }
     }
 }

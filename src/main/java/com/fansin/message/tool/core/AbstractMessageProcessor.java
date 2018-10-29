@@ -4,8 +4,6 @@ import cn.hutool.core.util.ZipUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>Title: AbstractMessageProcessor</p>
@@ -26,11 +24,6 @@ public abstract class AbstractMessageProcessor {
      * The Receiver.
      */
     protected LinkedDataReceiver receiver;
-
-    /**
-     * 使用一个，太多占用资源
-     */
-    private ForkJoinPool pool;
 
     /**
      * Instantiates a new Abstract message processor.
@@ -72,8 +65,10 @@ public abstract class AbstractMessageProcessor {
         if (files.isDirectory()) {
             //递归目录
             File[] list = files.listFiles();
-            for (File file : list) {
-                readDir(file);
+            if (list != null){
+                for (File file : list) {
+                    readDir(file);
+                }
             }
         } else {
             //读取文件
@@ -123,30 +118,10 @@ public abstract class AbstractMessageProcessor {
      */
     private void read0(String filePath, String mode) {
         log.info("解析任务开始...异步任务处理");
-        init();
         read(filePath, mode);
-//        destroy();
+
     }
 
-    /**
-     * 初始化ForkJoinPool
-     */
-    private void init() {
-        //默认cup线程数
-        pool = new ForkJoinPool();
-    }
-
-    /**
-     * 关闭资源
-     */
-    private void destroy() {
-        pool.shutdown();
-        try {
-            pool.awaitTermination(WAITING_DAYS, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * 为不同的报文解析提供具体实现

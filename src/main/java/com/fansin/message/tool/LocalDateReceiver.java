@@ -25,7 +25,7 @@ public class LocalDateReceiver implements LinkedDataReceiver<String> {
      * @return long
      */
     @Override
-    public Integer exec(List<String> stringList) {
+    public void exec(List<String> stringList) {
 
         //保存处理结果
         AtomicInteger successNum = new AtomicInteger(0);
@@ -35,6 +35,7 @@ public class LocalDateReceiver implements LinkedDataReceiver<String> {
 
             String[] strings = stringList.get(i).split(SEPERATOR);
             BaseLinkedData baseLinkedData = new BaseLinkedData(strings[0], strings[1]);
+            System.out.println("baseLinkedData = " + baseLinkedData.getRaw());
             //批处理
             successNum.addAndGet(1);
             if(i %1000 == 0 &&  i > 0){
@@ -42,8 +43,7 @@ public class LocalDateReceiver implements LinkedDataReceiver<String> {
             }
         }
 
-        System.out.println("[重写]业务处理,数据库持久化等...批量提交剩余数据!");
+        System.out.println("[重写]业务处理,数据库持久化等...批量提交剩余数据!"+successNum.get());
 
-        return successNum.get();
     }
 }

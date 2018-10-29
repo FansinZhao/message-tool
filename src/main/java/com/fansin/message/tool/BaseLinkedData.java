@@ -1,5 +1,6 @@
 package com.fansin.message.tool;
 
+
 import com.fansin.message.tool.core.AbstractLinkedData;
 
 /**

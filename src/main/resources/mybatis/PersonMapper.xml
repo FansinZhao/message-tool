@@ -7,7 +7,7 @@
 
 
     <select id="exportData" resultType="java.lang.String">
-      select CONCAT_WS(',',round(rand()*990000+10000) ,id) from Person
+      select CONCAT_WS(',',id,round(rand()*990000+10000) ) from person
     </select>
 
 </mapper>
